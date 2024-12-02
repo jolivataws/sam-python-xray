@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: X-Ray Tracing Test
+
+Globals:
+  Function:
+    Timeout: 10
+    Tracing: Active
+
+Resources:
+  FunctionA:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: function_a/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          FUNCTION_B_API: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/function-b"
+
+  FunctionB:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: function_b/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - AWSLambdaBasicExecutionRole
+      Events:
+        FunctionBApi:
+          Type: Api
+          Properties:
+            Path: /function-b
+            Method: get
+
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      TracingEnabled: true
+
+Outputs:
+  FunctionAName:
+    Description: "Function A Name"
+    Value: !Ref FunctionA
+  FunctionBApi:
+    Description: "API Gateway endpoint URL for Function B"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/function-b"

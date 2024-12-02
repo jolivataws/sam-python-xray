@@ -1,0 +1,1 @@
+{"statusCode": 200, "body": "{\"message\": \"Hello from Function A!\", \"function_b_response\": {\"message\": \"Hello from Function B!\"}}"}
